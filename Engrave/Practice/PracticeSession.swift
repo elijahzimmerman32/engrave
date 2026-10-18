@@ -1,7 +1,8 @@
 import Foundation
 
 /// Learning a verse piece by piece: hear a piece, then say everything learned so far.
-/// If the person keeps missing a piece, it's split into a smaller one.
+/// If the person keeps missing a piece, it's split into a smaller one. It ends with a test
+/// of the whole verse from memory.
 @MainActor
 @Observable
 final class PracticeSession {
@@ -13,6 +14,10 @@ final class PracticeSession {
     private(set) var step = 0
     private(set) var phase = Phase.starting
     private(set) var lastGrade: Grade?
+    /// True once every piece is learned and the closing test of the whole verse has started.
+    private(set) var isFinalTest = false
+    /// The result of the closing test, if the person answered it.
+    private(set) var finalGrade: Grade?
 
     init(verse: MemoryVerse, mode: AnswerMode) {
         self.verse = verse
@@ -93,9 +98,27 @@ final class PracticeSession {
         }
 
         guard !talk.isCancelled else { return }
-        phase = .finished
         verse.practiceCount += 1
-        await talk.say("Great work. When you're ready, try the test.")
+
+        // Finish with a test: the reference only, and the whole verse from memory.
+        isFinalTest = true
+        phase = .answering
+        await talk.say("Now the test. Say the whole verse from memory. \(verse.reference.spoken)")
+        let said = await talk.answer(hints: hints)
+        guard !talk.isCancelled else { return }
+
+        if !said.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            phase = .checking
+            let grade = await Grader.grade(expected: verse.text, answer: said)
+            verse.recordTest(grade)
+            finalGrade = grade
+        }
+        phase = .finished
+        if let grade = finalGrade {
+            await talk.say(grade.passed ? "You've got it memorized! \(grade.feedback)" : "Almost. \(grade.feedback) Practice it again soon.")
+        } else {
+            await talk.say("Good practice. Try the test when you're ready.")
+        }
     }
 
     func stop() {

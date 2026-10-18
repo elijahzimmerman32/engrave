@@ -12,7 +12,7 @@ struct PracticeView: View {
             } else {
                 StartPanel(
                     title: "Practice in Pieces",
-                    detail: "You'll hear the verse, then learn it a phrase at a time, adding one piece each round.",
+                    detail: "You'll hear the verse, then learn it a phrase at a time, adding one piece each round. At the end you'll be tested on the whole verse.",
                     systemImage: "square.stack.3d.up",
                     mode: $mode,
                     start: start
@@ -42,12 +42,7 @@ private struct PracticeRunningView: View {
             VStack(spacing: 24) {
                 switch session.phase {
                 case .finished:
-                    DoneView(
-                        title: "Verse practiced",
-                        message: "You said the whole verse from memory. Try the test when you're ready.",
-                        againLabel: "Practice Again",
-                        again: restart
-                    )
+                    finished
                 case .stopped:
                     DoneView(title: "Paused", message: "I didn't hear an answer, so I stopped.", againLabel: "Start Over", again: restart)
                 default:
@@ -60,12 +55,38 @@ private struct PracticeRunningView: View {
     }
 
     @ViewBuilder
+    private var finished: some View {
+        if let grade = session.finalGrade {
+            DoneView(
+                title: grade.passed ? "Memorized!" : "Almost there",
+                message: grade.passed ? "You said the whole verse from memory." : "Practice it again and you'll have it.",
+                againLabel: "Practice Again",
+                again: restart
+            )
+            GradeCard(grade: grade)
+        } else {
+            DoneView(title: "Verse practiced", message: "Try the test when you're ready.", againLabel: "Practice Again", again: restart)
+        }
+        NavigationLink {
+            TestRunView(verses: [session.verse])
+        } label: {
+            Text(session.finalGrade == nil ? "Take the Test" : "Test Again").frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+    }
+
+    @ViewBuilder
     private var running: some View {
-        VStack(spacing: 8) {
-            ProgressView(value: Double(session.step), total: Double(session.chunks.count))
-            Text("Piece \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        if session.isFinalTest {
+            Text("Test").font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
+        } else {
+            VStack(spacing: 8) {
+                ProgressView(value: Double(session.step), total: Double(session.chunks.count))
+                Text("Piece \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
 
         Text(status)
@@ -77,6 +98,8 @@ private struct PracticeRunningView: View {
             Text(session.verse.text).font(.title3)
         case .hearing:
             Text(session.newPiece).font(.title2)
+        case .answering where session.isFinalTest:
+            Text(session.verse.reference.display).font(.largeTitle.bold())
         case .answering:
             Button(showHint ? "Hide Hint" : "Show Hint") { showHint.toggle() }
             if showHint {
@@ -101,6 +124,7 @@ private struct PracticeRunningView: View {
         case .starting: return "Listen to the whole verse"
         case .hearing: return session.step == 0 ? "Listen to the first piece" : "Listen to the next piece"
         case .answering:
+            if session.isFinalTest { return typing ? "Type the whole verse from memory" : "Say the whole verse from memory" }
             if session.step == 0 { return typing ? "Type that piece" : "Say that piece" }
             return typing ? "Type it from the beginning" : "Say it from the beginning"
         case .checking: return "Checking…"
