@@ -1,18 +1,22 @@
 import SwiftUI
 
+/// Learn a verse in pieces, then go straight into a test on it.
 struct PracticeView: View {
     let verse: MemoryVerse
     @AppStorage("answerMode") private var mode: AnswerMode = .voice
     @State private var session: PracticeSession?
+    @State private var test: TestSession?
 
     var body: some View {
         Group {
-            if let session {
-                PracticeRunningView(session: session, restart: start)
+            if let test {
+                TestRunningView(session: test, restart: startTest)
+            } else if let session {
+                PracticeRunningView(session: session, restart: start, takeTest: startTest)
             } else {
                 StartPanel(
-                    title: "Practice in Pieces",
-                    detail: "You'll hear the verse, then learn it a phrase at a time, adding one piece each round. At the end you'll be tested on the whole verse.",
+                    title: "Practice & Test",
+                    detail: "You'll hear the verse, then learn it a phrase at a time, adding one piece each round. When you can say it all, I'll test you on it.",
                     systemImage: "square.stack.3d.up",
                     mode: $mode,
                     start: start
@@ -21,13 +25,32 @@ struct PracticeView: View {
         }
         .navigationTitle(verse.reference.display)
         .navigationBarTitleDisplayMode(.inline)
-        .onDisappear { session?.stop() }
+        .onDisappear {
+            session?.stop()
+            test?.stop()
+        }
     }
 
     private func start() {
         session?.stop()
+        test?.stop()
+        test = nil
         let new = PracticeSession(verse: verse, mode: mode)
         session = new
+        Task {
+            await new.run()
+            // Once the whole verse is learned, carry on into the test with no tap needed.
+            if new.phase == .finished, session === new, test == nil {
+                startTest()
+            }
+        }
+    }
+
+    private func startTest() {
+        session?.stop()
+        test?.stop()
+        let new = TestSession(verses: [verse], mode: mode)
+        test = new
         Task { await new.run() }
     }
 }
@@ -35,6 +58,7 @@ struct PracticeView: View {
 private struct PracticeRunningView: View {
     let session: PracticeSession
     let restart: () -> Void
+    let takeTest: () -> Void
     @State private var showHint = false
 
     var body: some View {
@@ -42,7 +66,14 @@ private struct PracticeRunningView: View {
             VStack(spacing: 24) {
                 switch session.phase {
                 case .finished:
-                    finished
+                    VStack(spacing: 16) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 56))
+                            .foregroundStyle(.tint)
+                        Text("Verse practiced").font(.title2.bold())
+                        Text("Starting your test…").foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 40)
                 case .stopped:
                     DoneView(title: "Paused", message: "I didn't hear an answer, so I stopped.", againLabel: "Start Over", again: restart)
                 default:
@@ -55,38 +86,12 @@ private struct PracticeRunningView: View {
     }
 
     @ViewBuilder
-    private var finished: some View {
-        if let grade = session.finalGrade {
-            DoneView(
-                title: grade.passed ? "Memorized!" : "Almost there",
-                message: grade.passed ? "You said the whole verse from memory." : "Practice it again and you'll have it.",
-                againLabel: "Practice Again",
-                again: restart
-            )
-            GradeCard(grade: grade)
-        } else {
-            DoneView(title: "Verse practiced", message: "Try the test when you're ready.", againLabel: "Practice Again", again: restart)
-        }
-        NavigationLink {
-            TestRunView(verses: [session.verse])
-        } label: {
-            Text(session.finalGrade == nil ? "Take the Test" : "Test Again").frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-    }
-
-    @ViewBuilder
     private var running: some View {
-        if session.isFinalTest {
-            Text("Test").font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
-        } else {
-            VStack(spacing: 8) {
-                ProgressView(value: Double(session.step), total: Double(session.chunks.count))
-                Text("Piece \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+        VStack(spacing: 8) {
+            ProgressView(value: Double(session.step), total: Double(session.chunks.count))
+            Text("Piece \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
 
         Text(status)
@@ -98,8 +103,6 @@ private struct PracticeRunningView: View {
             Text(session.verse.text).font(.title3)
         case .hearing:
             Text(session.newPiece).font(.title2)
-        case .answering where session.isFinalTest:
-            Text(session.verse.reference.display).font(.largeTitle.bold())
         case .answering:
             Button(showHint ? "Hide Hint" : "Show Hint") { showHint.toggle() }
             if showHint {
@@ -116,6 +119,9 @@ private struct PracticeRunningView: View {
         }
 
         AnswerArea(conversation: session.conversation, placeholder: "Type it from memory")
+
+        Button("Skip to the Test", action: takeTest)
+            .font(.footnote)
     }
 
     private var status: String {
@@ -124,7 +130,6 @@ private struct PracticeRunningView: View {
         case .starting: return "Listen to the whole verse"
         case .hearing: return session.step == 0 ? "Listen to the first piece" : "Listen to the next piece"
         case .answering:
-            if session.isFinalTest { return typing ? "Type the whole verse from memory" : "Say the whole verse from memory" }
             if session.step == 0 { return typing ? "Type that piece" : "Say that piece" }
             return typing ? "Type it from the beginning" : "Say it from the beginning"
         case .checking: return "Checking…"

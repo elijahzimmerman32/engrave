@@ -24,14 +24,14 @@ struct VerseDetailView: View {
                     NavigationLink {
                         PracticeView(verse: verse)
                     } label: {
-                        Label("Practice in Pieces", systemImage: "square.stack.3d.up").frame(maxWidth: .infinity)
+                        Label("Practice & Test", systemImage: "square.stack.3d.up").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
 
                     NavigationLink {
                         TestRunView(verses: [verse])
                     } label: {
-                        Label("Test Me", systemImage: "checkmark.seal").frame(maxWidth: .infinity)
+                        Label("Test Only", systemImage: "checkmark.seal").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
                 }

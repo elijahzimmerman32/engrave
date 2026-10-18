@@ -83,7 +83,7 @@ struct TestRunView: View {
     }
 }
 
-private struct TestRunningView: View {
+struct TestRunningView: View {
     let session: TestSession
     let restart: () -> Void
 

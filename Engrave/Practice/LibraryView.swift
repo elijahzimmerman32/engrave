@@ -85,7 +85,7 @@ private struct VerseRow: View {
                 Button {
                     open(.practice(verse))
                 } label: {
-                    Label("Practice", systemImage: "square.stack.3d.up").frame(maxWidth: .infinity)
+                    Label("Practice & Test", systemImage: "square.stack.3d.up").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
 

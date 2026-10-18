@@ -14,6 +14,9 @@ struct EngraveApp: App {
 struct RootView: View {
     var body: some View {
         TabView {
+            Tab("Practice", systemImage: "square.stack.3d.up") {
+                PracticeHomeView()
+            }
             Tab("My Verses", systemImage: "book.closed") {
                 LibraryView()
             }
