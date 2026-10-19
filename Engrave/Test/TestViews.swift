@@ -46,6 +46,7 @@ struct TestHomeView: View {
                     }
                 }
             }
+            .crossBackground()
             .navigationTitle("Test")
         }
     }
@@ -70,6 +71,7 @@ struct TestRunView: View {
                 )
             }
         }
+        .crossBackground()
         .navigationTitle("Test")
         .navigationBarTitleDisplayMode(.inline)
         .onDisappear { session?.stop() }

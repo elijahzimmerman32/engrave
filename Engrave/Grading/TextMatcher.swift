@@ -27,25 +27,30 @@ enum TextMatcher {
         }
         let extra = said.indices.filter { !matchedSaid.contains($0) }.map { said[$0] }
         let score = target.isEmpty ? 0 : Double(matchedTarget.count) / Double(max(target.count, said.count))
-        let passed = score >= Grader.passMark
-
-        return Grade(
-            score: score,
-            words: words,
-            extraWords: extra,
-            passed: passed,
-            feedback: feedback(passed: passed, score: score, words: words, saidAnything: !said.isEmpty)
-        )
+        var grade = Grade(score: score, words: words, extraWords: extra, passed: score >= Grader.passMark, feedback: "")
+        grade.feedback = feedback(for: grade)
+        return grade
     }
 
-    private static func feedback(passed: Bool, score: Double, words: [Grade.Word], saidAnything: Bool) -> String {
-        let missed = words.filter { $0.status == .missed }.map { normalizeForSpeech($0.text) }
-        if !saidAnything { return "I didn't catch anything." }
-        if score >= 0.999 { return "Perfect, word for word." }
-        if passed { return missed.isEmpty ? "Nearly perfect." : "Nearly perfect. Watch the word \(missed[0])." }
-        let correct = words.count - missed.count
-        let sample = missed.prefix(4).joined(separator: ", ")
-        return "You had \(correct) of \(words.count) words. You missed \(sample)\(missed.count > 4 ? ", and a few more" : "")."
+    /// Spoken and shown after an answer. Starts with "Correct" or "Not quite" to match the verdict.
+    static func feedback(for grade: Grade) -> String {
+        let missed = grade.missedWords.map(normalizeForSpeech)
+        let extra = grade.extraWords.prefix(3).joined(separator: ", ")
+        if grade.passed {
+            if grade.score >= 0.999 { return "Correct. Word for word." }
+            return missed.isEmpty ? "Correct." : "Correct. Watch the word \(missed[0])."
+        }
+        if grade.words.allSatisfy({ $0.status == .missed }) && grade.extraWords.isEmpty {
+            return "Not quite. I didn't catch any of the words."
+        }
+        var parts = ["Not quite. You had \(grade.words.count - missed.count) of \(grade.words.count) words."]
+        if !missed.isEmpty {
+            parts.append("You missed \(missed.prefix(4).joined(separator: ", "))\(missed.count > 4 ? ", and a few more" : "").")
+        }
+        if !extra.isEmpty {
+            parts.append("You added \(extra).")
+        }
+        return parts.joined(separator: " ")
     }
 
     private static func splitWords(_ text: String) -> [String] {

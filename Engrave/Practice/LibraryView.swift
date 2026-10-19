@@ -35,6 +35,7 @@ struct LibraryView: View {
                     }
                 }
             }
+            .crossBackground()
             .navigationTitle("My Verses")
             .navigationDestination(for: VerseRoute.self) { route in
                 switch route {

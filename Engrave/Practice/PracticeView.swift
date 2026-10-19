@@ -23,6 +23,7 @@ struct PracticeView: View {
                 )
             }
         }
+        .crossBackground()
         .navigationTitle(verse.reference.display)
         .navigationBarTitleDisplayMode(.inline)
         .onDisappear {
@@ -89,7 +90,7 @@ private struct PracticeRunningView: View {
     private var running: some View {
         VStack(spacing: 8) {
             ProgressView(value: Double(session.step), total: Double(session.chunks.count))
-            Text("Piece \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)")
+            Text("Piece \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)  ·  Correct \(session.passesThisStep) of \(PracticeSession.passesNeeded)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -130,10 +131,13 @@ private struct PracticeRunningView: View {
         case .starting: return "Listen to the whole verse"
         case .hearing: return session.step == 0 ? "Listen to the first piece" : "Listen to the next piece"
         case .answering:
+            if session.passesThisStep > 0 { return typing ? "Type it once more" : "Say it once more" }
             if session.step == 0 { return typing ? "Type that piece" : "Say that piece" }
             return typing ? "Type it from the beginning" : "Say it from the beginning"
         case .checking: return "Checking…"
-        case .result: return session.lastGrade?.passed == true ? "Nice!" : "Let's try again"
+        case .result:
+            guard session.lastGrade?.passed == true else { return "Not quite. Let's try again" }
+            return session.passesThisStep == 1 ? "Correct! Once more" : "Correct!"
         case .finished, .stopped: return ""
         }
     }

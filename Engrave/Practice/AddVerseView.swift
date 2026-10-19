@@ -79,6 +79,7 @@ struct AddVerseView: View {
                     }
                 }
             }
+            .crossBackground()
             .navigationTitle("Add Verse")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

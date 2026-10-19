@@ -60,10 +60,11 @@ final class TestSession {
             phase = .result
 
             if grade.passed {
-                await talk.say("Correct. \(grade.feedback)")
+                await talk.say(grade.feedback)
             } else {
-                await talk.say("Not quite. \(grade.feedback)")
-                await talk.say("Here's how it goes. \(verse.text)")
+                await talk.say(grade.feedback)
+                await talk.say("Here's how it goes.")
+                await talk.say(verse.text, slow: true)
             }
             await talk.pause()
             index += 1

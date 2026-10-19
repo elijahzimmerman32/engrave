@@ -24,15 +24,16 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
     }
 
     /// Speaks the text and returns once it has finished, or been stopped.
-    func speak(_ text: String) async {
+    /// `slow` is for verse text, so each word is clear enough to repeat back.
+    func speak(_ text: String, slow: Bool = false) async {
         stop()
         guard !text.isEmpty else { return }
         AudioSession.activate()
 
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.95
-        utterance.postUtteranceDelay = 0.2
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * (slow ? 0.75 : 0.95)
+        utterance.postUtteranceDelay = slow ? 0.4 : 0.2
         current = ObjectIdentifier(utterance)
 
         await withCheckedContinuation { continuation in

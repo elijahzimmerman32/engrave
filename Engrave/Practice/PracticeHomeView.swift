@@ -48,6 +48,7 @@ struct PracticeHomeView: View {
                     }
                 }
             }
+            .crossBackground()
             .navigationTitle("Practice")
             .toolbar {
                 Button("Add Verse", systemImage: "plus") { showingAdd = true }

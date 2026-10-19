@@ -15,7 +15,7 @@ struct VerseDetailView: View {
 
                 VStack(spacing: 12) {
                     Button {
-                        Task { await Speaker.shared.speak(verse.text) }
+                        Task { await Speaker.shared.speak(verse.text, slow: true) }
                     } label: {
                         Label("Listen", systemImage: "speaker.wave.2.fill").frame(maxWidth: .infinity)
                     }
@@ -51,6 +51,7 @@ struct VerseDetailView: View {
             }
             .padding()
         }
+        .crossBackground()
         .navigationTitle(verse.reference.display)
         .toolbar {
             Button(textHidden ? "Show Text" : "Hide Text", systemImage: textHidden ? "eye" : "eye.slash") {

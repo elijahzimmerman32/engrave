@@ -27,9 +27,9 @@ final class Conversation {
         listener = Listener()
     }
 
-    func say(_ text: String) async {
+    func say(_ text: String, slow: Bool = false) async {
         guard !isCancelled else { return }
-        await Speaker.shared.speak(text)
+        await Speaker.shared.speak(text, slow: slow)
     }
 
     func answer(hints: [String]) async -> String {
