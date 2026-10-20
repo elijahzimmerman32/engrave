@@ -51,7 +51,7 @@ final class PracticeSession {
         let hints = Self.hints(for: verse.text)
 
         phase = .starting
-        await talk.say("Let's learn \(verse.reference.spoken). Here's the whole thing.")
+        await talk.say(verse.reference.spoken)
         await talk.say(verse.text, slow: true)
 
         var needsToHear = true
@@ -61,26 +61,14 @@ final class PracticeSession {
         while step < roundCount, !talk.isCancelled {
             if needsToHear {
                 phase = .hearing
+                // Spoken prompts are kept to a minimum: the app reads, then listens.
+                // Only the switch to the whole verse gets a cue, since it's a change of pace.
                 if isWholeRound {
-                    await talk.say("Now put it all together.")
-                } else if step == 0 && passesThisStep == 0 {
-                    await talk.say("Repeat after me.")
-                } else if style == .pieces {
-                    await talk.say("Next piece.")
+                    await talk.say("All together.")
                 }
                 await talk.say(target, slow: true)
             }
             phase = .answering
-            if talk.mode == .voice {
-                // Build up keeps a quick back-and-forth rhythm, so it only prompts on the first round.
-                if passesThisStep > 0 {
-                    await talk.say("One more time.")
-                } else if isWholeRound {
-                    await talk.say("Say the whole verse.")
-                } else if style == .pieces || step == 0 {
-                    await talk.say("Your turn.")
-                }
-            }
 
             let said = await talk.answer(hints: hints)
             guard !talk.isCancelled else { return }
@@ -89,11 +77,10 @@ final class PracticeSession {
                 silentTurns += 1
                 if silentTurns >= 2 {
                     phase = .stopped
-                    await talk.say("I'll pause here. Come back anytime.")
+                    await talk.say("Pausing.")
                     return
                 }
                 needsToHear = false
-                await talk.say("I didn't hear anything. Here it is again.")
                 await talk.say(target, slow: true)
                 continue
             }
@@ -109,7 +96,7 @@ final class PracticeSession {
                 passesThisStep += 1
                 if passesThisStep < passesNeeded {
                     needsToHear = false
-                    await talk.say("Correct. Say it once more.")
+                    await talk.say("Correct. Again.")
                 } else {
                     passesThisStep = 0
                     needsToHear = true
@@ -117,7 +104,7 @@ final class PracticeSession {
                     if step == roundCount {
                         await talk.say("Correct. That's the whole verse!")
                     } else {
-                        await talk.say(passesNeeded == 1 ? "Correct." : "Correct, twice in a row.")
+                        await talk.say("Correct.")
                     }
                 }
             } else {
@@ -128,11 +115,11 @@ final class PracticeSession {
                     chunks.replaceSubrange(step...step, with: halves)
                     misses = 0
                     needsToHear = true
-                    await talk.say("Let's take a smaller piece.")
+                    await talk.say("Smaller piece.")
                 } else {
                     needsToHear = false
-                    await talk.say(grade.feedback)
-                    await talk.say("Listen again.")
+                    // The details of what was missed are on screen, not read aloud.
+                    await talk.say("Not quite.")
                     await talk.say(target, slow: true)
                 }
             }
@@ -142,7 +129,7 @@ final class PracticeSession {
         guard !talk.isCancelled else { return }
         phase = .finished
         verse.practiceCount += 1
-        await talk.say("Great work. Now let's see if you've got it.")
+        await talk.say("Now the test.")
     }
 
     func stop() {

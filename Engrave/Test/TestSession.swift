@@ -29,7 +29,9 @@ final class TestSession {
     func run() async {
         let talk = conversation
         phase = .starting
-        await talk.say(verses.count == 1 ? "Test time." : "Test time. \(verses.count) verses. I'll read each reference, and you say the verse.")
+        if verses.count > 1 {
+            await talk.say("\(verses.count) verses.")
+        }
 
         var silentTurns = 0
         while index < verses.count, !talk.isCancelled {
@@ -45,10 +47,9 @@ final class TestSession {
                 silentTurns += 1
                 if silentTurns >= 2 {
                     phase = .stopped
-                    await talk.say("I'll pause the test here. Come back anytime.")
+                    await talk.say("Pausing.")
                     return
                 }
-                await talk.say("I didn't hear anything. Let's try that one again.")
                 continue
             }
             silentTurns = 0
@@ -59,11 +60,11 @@ final class TestSession {
             results.append(Result(reference: verse.reference.display, grade: grade))
             phase = .result
 
+            // Only the verdict is spoken. The missed words are on screen.
             if grade.passed {
-                await talk.say(grade.feedback)
+                await talk.say("Correct.")
             } else {
-                await talk.say(grade.feedback)
-                await talk.say("Here's how it goes.")
+                await talk.say("Not quite.")
                 await talk.say(verse.text, slow: true)
             }
             await talk.pause()
@@ -73,7 +74,9 @@ final class TestSession {
         guard !talk.isCancelled else { return }
         phase = .finished
         let passed = results.filter(\.grade.passed).count
-        await talk.say("You got \(passed) out of \(results.count). \(passed == results.count ? "Excellent!" : "Keep practicing.")")
+        if results.count > 1 {
+            await talk.say("\(passed) out of \(results.count).")
+        }
     }
 
     func stop() {
