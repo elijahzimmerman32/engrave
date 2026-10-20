@@ -23,7 +23,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Voice")
                 } footer: {
-                    Text("For the most natural voices, download an Enhanced or Premium voice like Evan or Nathan in your iPhone's Settings app: Accessibility, then Spoken Content, then Voices, then English. It will show up here once it's downloaded.")
+                    Text("For the most natural voices, download an Enhanced or Premium voice like Evan or Nathan in your iPhone's Settings app: Accessibility, then Read & Speak (Spoken Content on older iPhones), then Voices, then English. Or search for "Voices" in Settings. It will show up here once it's downloaded.")
                 }
 
                 Section {
