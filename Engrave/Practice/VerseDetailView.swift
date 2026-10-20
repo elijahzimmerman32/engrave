@@ -3,6 +3,7 @@ import SwiftUI
 struct VerseDetailView: View {
     let verse: MemoryVerse
     @State private var textHidden = false
+    @Environment(AppNavigator.self) private var navigator
 
     var body: some View {
         ScrollView {
@@ -32,6 +33,13 @@ struct VerseDetailView: View {
                         TestRunView(verses: [verse])
                     } label: {
                         Label("Test Only", systemImage: "checkmark.seal").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button {
+                        navigator.showConnections(for: verse.reference)
+                    } label: {
+                        Label("See Connections", systemImage: "point.3.connected.trianglepath.dotted").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
                 }

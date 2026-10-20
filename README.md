@@ -34,7 +34,7 @@ The code still lives in folders named `Engrave` (the app's first name), and the 
 
 | Folder | What's in it |
 | --- | --- |
-| `Engrave/App` | App startup and the two tabs |
+| `Engrave/App` | App startup, the loading screen and the tabs |
 | `Engrave/Bible` | Loading the bundled Bible, reading references, and the saved verse model |
 | `Engrave/Voice` | Reading aloud, speech recognition, and the talk-then-listen turn-taking |
 | `Engrave/Grading` | The word-by-word check and the on-device AI coach |
@@ -42,4 +42,5 @@ The code still lives in folders named `Engrave` (the app's first name), and the 
 | `Engrave/Test` | The test flow and results |
 | `Engrave/Shared` | Buttons, cards and the cross used on several screens |
 | `Engrave/Settings` | Voice, practice style and repeat settings |
+| `Engrave/Connections` | The Connections tab, showing [Bible Cross-References](https://trekhleb.dev/bible-cross-references/) by Oleksii Trekhleb (cross-reference data from OpenBible.info, CC BY 4.0) |
 | `Engrave/Resources/web.json` | The World English Bible text |

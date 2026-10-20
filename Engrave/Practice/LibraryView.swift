@@ -5,6 +5,7 @@ enum VerseRoute: Hashable {
     case detail(MemoryVerse)
     case practice(MemoryVerse)
     case test(MemoryVerse)
+    case testAll([MemoryVerse])
 }
 
 struct LibraryView: View {
@@ -13,14 +14,31 @@ struct LibraryView: View {
     @State private var showingAdd = false
     @State private var path: [VerseRoute] = []
 
+    private var masteredCount: Int { verses.filter(\.isMastered).count }
+
     var body: some View {
         NavigationStack(path: $path) {
             List {
-                ForEach(verses) { verse in
-                    VerseRow(verse: verse) { path.append($0) }
+                if !verses.isEmpty {
+                    Section {
+                        LabeledContent("Memorized", value: "\(masteredCount) of \(verses.count)")
+                        if verses.count > 1 {
+                            Button {
+                                path.append(.testAll(verses.shuffled()))
+                            } label: {
+                                Label("Test All \(verses.count) Verses", systemImage: "play.fill")
+                                    .font(.headline)
+                            }
+                        }
+                    }
                 }
-                .onDelete { offsets in
-                    for index in offsets { context.delete(verses[index]) }
+                Section {
+                    ForEach(verses) { verse in
+                        VerseRow(verse: verse) { path.append($0) }
+                    }
+                    .onDelete { offsets in
+                        for index in offsets { context.delete(verses[index]) }
+                    }
                 }
             }
             .overlay {
@@ -42,6 +60,7 @@ struct LibraryView: View {
                 case .detail(let verse): VerseDetailView(verse: verse)
                 case .practice(let verse): PracticeView(verse: verse)
                 case .test(let verse): TestRunView(verses: [verse])
+                case .testAll(let verses): TestRunView(verses: verses)
                 }
             }
             .toolbar {

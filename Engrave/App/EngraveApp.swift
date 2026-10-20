@@ -11,8 +11,31 @@ struct EngraveApp: App {
     }
 }
 
+/// Which tab is showing, and where the Connections tab should open.
+@MainActor
+@Observable
+final class AppNavigator {
+    enum TabID: Hashable { case verses, connections, settings }
+
+    var tab = TabID.verses
+    private(set) var connectionsURL = ConnectionsView.home
+    /// Bumped on every request, so the page reloads even when the address is the same.
+    private(set) var connectionsRequest = 0
+
+    func showConnections(for reference: VerseReference) {
+        openConnections(ConnectionsView.url(for: reference))
+        tab = .connections
+    }
+
+    func openConnections(_ url: URL) {
+        connectionsURL = url
+        connectionsRequest += 1
+    }
+}
+
 struct RootView: View {
     @State private var showSplash = true
+    @State private var navigator = AppNavigator()
 
     var body: some View {
         ZStack {
@@ -23,6 +46,7 @@ struct RootView: View {
                     .zIndex(1)
             }
         }
+        .environment(navigator)
         .task {
             // Load the Bible while the cross is showing, so the app is ready when it fades in.
             Task.detached(priority: .userInitiated) { _ = Bible.shared }
@@ -32,17 +56,14 @@ struct RootView: View {
     }
 
     private var tabs: some View {
-        TabView {
-            Tab("Practice", systemImage: "square.stack.3d.up") {
-                PracticeHomeView()
-            }
-            Tab("My Verses", systemImage: "book.closed") {
+        TabView(selection: $navigator.tab) {
+            Tab("My Verses", systemImage: "book.closed", value: AppNavigator.TabID.verses) {
                 LibraryView()
             }
-            Tab("Test", systemImage: "checkmark.seal") {
-                TestHomeView()
+            Tab("Connections", systemImage: "point.3.connected.trianglepath.dotted", value: AppNavigator.TabID.connections) {
+                ConnectionsView()
             }
-            Tab("Settings", systemImage: "gearshape") {
+            Tab("Settings", systemImage: "gearshape", value: AppNavigator.TabID.settings) {
                 SettingsView()
             }
         }
