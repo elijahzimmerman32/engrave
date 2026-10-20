@@ -26,7 +26,7 @@ struct RootView: View {
         .task {
             // Load the Bible while the cross is showing, so the app is ready when it fades in.
             Task.detached(priority: .userInitiated) { _ = Bible.shared }
-            try? await Task.sleep(for: .seconds(1.8))
+            try? await Task.sleep(for: .seconds(SplashView.wordDuration + 0.5))
             withAnimation(.easeInOut(duration: 0.9)) { showSplash = false }
         }
     }

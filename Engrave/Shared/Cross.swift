@@ -20,26 +20,55 @@ struct CrossMark: View {
     }
 }
 
-/// Shown when the app opens: the cross fades in, then the whole screen fades into the app.
+/// Shown when the app opens: the cross fades in with "Hidden" on it and Psalm 119:11 below.
+/// The word fades out first, then the whole screen fades into the app.
 struct SplashView: View {
+    /// How long until the word fades. RootView fades the whole screen shortly after.
+    static let wordDuration = 1.8
+
     @State private var appeared = false
+    @State private var wordVisible = true
+
+    private let crossHeight: CGFloat = 320
 
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
-            VStack(spacing: 24) {
-                CrossMark()
-                    .foregroundStyle(.tint)
-                    .frame(height: 160)
-                    .scaleEffect(appeared ? 1 : 0.85)
-                Text("Engrave")
-                    .font(.largeTitle.weight(.semibold))
+
+            CrossMark()
+                .foregroundStyle(.tint)
+                .frame(height: crossHeight)
+                .overlay(alignment: .top) {
+                    // Sits on the crossbar, which starts 24% down the cross and is 14% tall.
+                    Text("Hidden")
+                        .font(.system(size: crossHeight * 0.09, weight: .semibold, design: .serif))
+                        .tracking(1)
+                        .foregroundStyle(.white)
+                        .frame(height: crossHeight * 0.14)
+                        .offset(y: crossHeight * 0.24)
+                        .opacity(wordVisible ? 1 : 0)
+                }
+                .scaleEffect(appeared ? 1 : 0.9)
+                .opacity(appeared ? 1 : 0)
+
+            VStack(spacing: 6) {
+                Spacer()
+                Text("“I have hidden your word in my heart, that I might not sin against you.”")
+                    .font(.callout.italic())
                     .fontDesign(.serif)
+                    .multilineTextAlignment(.center)
+                Text("Psalm 119:11")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
             }
+            .padding(.horizontal, 40)
+            .padding(.bottom, 24)
             .opacity(appeared ? 1 : 0)
         }
-        .onAppear {
+        .task {
             withAnimation(.easeOut(duration: 0.8)) { appeared = true }
+            try? await Task.sleep(for: .seconds(Self.wordDuration))
+            withAnimation(.easeInOut(duration: 0.5)) { wordVisible = false }
         }
     }
 }

@@ -1,4 +1,6 @@
-# Engrave
+# Hidden
+
+> I have hidden your word in my heart, that I might not sin against you. (Psalm 119:11)
 
 An iPhone app for memorizing Bible verses, by listening, speaking, or typing.
 
@@ -20,13 +22,15 @@ You need a Mac with **Xcode 26 or newer** and a free Apple ID. A paid developer 
 3. **Connect your iPhone** with a cable and tap **Trust** on the phone.
 4. **Turn on Developer Mode** on the iPhone: **Settings > Privacy & Security > Developer Mode**, switch it on, and restart when asked.
 5. **Run it.** At the top of Xcode, click the device menu and choose your iPhone. Press the **▶ Run** button (or Cmd-R).
-6. **Trust the app.** The first time, the phone may say "Untrusted Developer". Go to **Settings > General > VPN & Device Management**, tap your Apple ID, and tap **Trust**. Then open Engrave.
+6. **Trust the app.** The first time, the phone may say "Untrusted Developer". Go to **Settings > General > VPN & Device Management**, tap your Apple ID, and tap **Trust**. Then open Hidden.
 
 With a free Apple ID the app stops opening after 7 days. Just plug in and press Run again to refresh it.
 
 For AI grading, turn on Apple Intelligence in **Settings > Apple Intelligence & Siri**.
 
 ## How the code is organized
+
+The code still lives in folders named `Engrave` (the app's first name), and the bundle identifier is unchanged so installs keep their saved verses.
 
 | Folder | What's in it |
 | --- | --- |

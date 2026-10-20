@@ -186,9 +186,9 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Engrave;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Engrave listens when you recite a verse so it can check your answer.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Engrave turns your spoken recitation into text to check it against the verse.";
+				INFOPLIST_KEY_CFBundleDisplayName = Hidden;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Hidden listens when you recite a verse so it can check your answer.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Hidden turns your spoken recitation into text to check it against the verse.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -218,9 +218,9 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Engrave;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Engrave listens when you recite a verse so it can check your answer.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Engrave turns your spoken recitation into text to check it against the verse.";
+				INFOPLIST_KEY_CFBundleDisplayName = Hidden;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Hidden listens when you recite a verse so it can check your answer.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Hidden turns your spoken recitation into text to check it against the verse.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
