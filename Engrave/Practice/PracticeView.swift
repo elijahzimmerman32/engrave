@@ -89,8 +89,8 @@ private struct PracticeRunningView: View {
     @ViewBuilder
     private var running: some View {
         VStack(spacing: 8) {
-            ProgressView(value: Double(session.step), total: Double(session.chunks.count))
-            Text("Piece \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)  ·  Correct \(session.passesThisStep) of \(PracticeSession.passesNeeded)")
+            ProgressView(value: Double(session.step), total: Double(session.roundCount))
+            Text("\(session.isWholeRound ? "Whole verse" : "Piece \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)")  ·  Correct \(session.passesThisStep) of \(PracticeSession.passesNeeded)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -103,7 +103,7 @@ private struct PracticeRunningView: View {
         case .starting:
             Text(session.verse.text).font(.title3)
         case .hearing:
-            Text(session.newPiece).font(.title2)
+            Text(session.target).font(.title2)
         case .answering:
             Button(showHint ? "Hide Hint" : "Show Hint") { showHint.toggle() }
             if showHint {
@@ -129,11 +129,13 @@ private struct PracticeRunningView: View {
         let typing = session.conversation.mode == .typing
         switch session.phase {
         case .starting: return "Listen to the whole verse"
-        case .hearing: return session.step == 0 ? "Listen to the first piece" : "Listen to the next piece"
+        case .hearing:
+            if session.isWholeRound { return "Listen to the whole verse" }
+            return session.step == 0 ? "Listen to the first piece" : "Listen to the next piece"
         case .answering:
             if session.passesThisStep > 0 { return typing ? "Type it once more" : "Say it once more" }
-            if session.step == 0 { return typing ? "Type that piece" : "Say that piece" }
-            return typing ? "Type it from the beginning" : "Say it from the beginning"
+            if session.isWholeRound { return typing ? "Type the whole verse" : "Say the whole verse" }
+            return typing ? "Type that piece" : "Say that piece"
         case .checking: return "Checking…"
         case .result:
             guard session.lastGrade?.passed == true else { return "Not quite. Let's try again" }

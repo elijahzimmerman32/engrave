@@ -32,7 +32,7 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
 
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * (slow ? 0.75 : 0.95)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * (slow ? 0.85 : 0.95)
         utterance.postUtteranceDelay = slow ? 0.4 : 0.2
         current = ObjectIdentifier(utterance)
 
