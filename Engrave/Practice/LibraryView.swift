@@ -35,9 +35,14 @@ struct LibraryView: View {
                 Section {
                     ForEach(verses) { verse in
                         VerseRow(verse: verse) { path.append($0) }
-                    }
-                    .onDelete { offsets in
-                        for index in offsets { context.delete(verses[index]) }
+                            // Swipe left to show Delete; keep swiping to delete right away.
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    withAnimation { context.delete(verse) }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                     }
                 }
             }

@@ -4,6 +4,9 @@ struct VerseDetailView: View {
     let verse: MemoryVerse
     @State private var textHidden = false
     @Environment(AppNavigator.self) private var navigator
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+    @State private var confirmingDelete = false
 
     var body: some View {
         ScrollView {
@@ -42,6 +45,22 @@ struct VerseDetailView: View {
                         Label("See Connections", systemImage: "point.3.connected.trianglepath.dotted").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+
+                    Button(role: .destructive) {
+                        confirmingDelete = true
+                    } label: {
+                        Label("Delete Verse", systemImage: "trash").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .confirmationDialog("Delete \(verse.reference.display)?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+                        Button("Delete Verse", role: .destructive) {
+                            Speaker.shared.stop()
+                            dismiss()
+                            context.delete(verse)
+                        }
+                    } message: {
+                        Text("Your progress on this verse will be removed.")
+                    }
                 }
                 .controlSize(.large)
 
