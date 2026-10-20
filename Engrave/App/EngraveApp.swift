@@ -42,6 +42,9 @@ struct RootView: View {
             Tab("Test", systemImage: "checkmark.seal") {
                 TestHomeView()
             }
+            Tab("Settings", systemImage: "gearshape") {
+                SettingsView()
+            }
         }
     }
 }

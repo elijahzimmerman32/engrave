@@ -40,5 +40,6 @@ The code still lives in folders named `Engrave` (the app's first name), and the 
 | `Engrave/Grading` | The word-by-word check and the on-device AI coach |
 | `Engrave/Practice` | Your verse list, adding verses, and practicing in pieces |
 | `Engrave/Test` | The test flow and results |
-| `Engrave/Shared` | Buttons and cards used on several screens |
+| `Engrave/Shared` | Buttons, cards and the cross used on several screens |
+| `Engrave/Settings` | Voice, practice style and repeat settings |
 | `Engrave/Resources/web.json` | The World English Bible text |

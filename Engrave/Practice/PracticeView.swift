@@ -90,7 +90,7 @@ private struct PracticeRunningView: View {
     private var running: some View {
         VStack(spacing: 8) {
             ProgressView(value: Double(session.step), total: Double(session.roundCount))
-            Text("\(session.isWholeRound ? "Whole verse" : "Piece \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)")  ·  Correct \(session.passesThisStep) of \(PracticeSession.passesNeeded)")
+            Text("\(session.isWholeRound ? "Whole verse" : "\(session.style == .buildUp ? "Round" : "Piece") \(min(session.step + 1, session.chunks.count)) of \(session.chunks.count)")  ·  Correct \(session.passesThisStep) of \(session.passesNeeded)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -131,15 +131,17 @@ private struct PracticeRunningView: View {
         case .starting: return "Listen to the whole verse"
         case .hearing:
             if session.isWholeRound { return "Listen to the whole verse" }
+            if session.style == .buildUp { return "Listen" }
             return session.step == 0 ? "Listen to the first piece" : "Listen to the next piece"
         case .answering:
             if session.passesThisStep > 0 { return typing ? "Type it once more" : "Say it once more" }
             if session.isWholeRound { return typing ? "Type the whole verse" : "Say the whole verse" }
+            if session.style == .buildUp { return typing ? "Type it back" : "Repeat it" }
             return typing ? "Type that piece" : "Say that piece"
         case .checking: return "Checking…"
         case .result:
             guard session.lastGrade?.passed == true else { return "Not quite. Let's try again" }
-            return session.passesThisStep == 1 ? "Correct! Once more" : "Correct!"
+            return session.passesThisStep > 0 && session.passesThisStep < session.passesNeeded ? "Correct! Once more" : "Correct!"
         case .finished, .stopped: return ""
         }
     }

@@ -1,7 +1,9 @@
 import Foundation
 
-/// Learning a verse piece by piece: each piece is heard and repeated on its own, then a final
-/// round puts the whole verse together. Each round has to be said correctly twice in a row.
+/// Learning a verse piece by piece, in one of two styles (see `PracticeStyle`):
+/// - Pieces: each piece is heard and repeated on its own, then a last round puts the whole verse together.
+/// - Build up: each round the app says everything so far plus the next piece, and the person repeats it.
+/// Each round has to be said correctly 1 or 2 times in a row, as set in Settings.
 /// If the person keeps missing a piece, it's split into a smaller one.
 @MainActor
 @Observable
@@ -14,24 +16,35 @@ final class PracticeSession {
     private(set) var step = 0
     private(set) var phase = Phase.starting
     private(set) var lastGrade: Grade?
-    /// Correct recitations so far of the current round. Two are needed to move on.
+    /// Correct recitations so far of the current round.
     private(set) var passesThisStep = 0
-    static let passesNeeded = 2
+    /// Correct recitations in a row needed to move on.
+    let passesNeeded: Int
+    let style: PracticeStyle
 
     init(verse: MemoryVerse, mode: AnswerMode) {
         self.verse = verse
         conversation = Conversation(mode: mode)
         chunks = Chunker.chunks(for: verse.text)
+        passesNeeded = AppSettings.repeats
+        style = AppSettings.style
     }
 
-    /// One round per piece, plus a last round for the whole verse when there's more than one piece.
-    var roundCount: Int { chunks.count > 1 ? chunks.count + 1 : chunks.count }
+    /// One round per piece. The pieces style adds a last round for the whole verse.
+    var roundCount: Int { style == .pieces && chunks.count > 1 ? chunks.count + 1 : chunks.count }
 
-    /// True in the last round, when the pieces are put together.
-    var isWholeRound: Bool { chunks.count > 1 && step >= chunks.count }
+    /// True in the pieces style's last round, when the pieces are put together.
+    var isWholeRound: Bool { style == .pieces && chunks.count > 1 && step >= chunks.count }
 
-    /// What the person should say this round: one piece, or the whole verse in the last round.
-    var target: String { isWholeRound ? chunks.joined(separator: " ") : chunks[min(step, chunks.count - 1)] }
+    /// What the person should say this round.
+    var target: String {
+        let last = min(step, chunks.count - 1)
+        if isWholeRound { return chunks.joined(separator: " ") }
+        return style == .buildUp ? chunks[0...last].joined(separator: " ") : chunks[last]
+    }
+
+    /// The piece being learned this round, used when a hard piece is split in two.
+    private var currentPiece: String { chunks[min(step, chunks.count - 1)] }
 
     func run() async {
         let talk = conversation
@@ -48,15 +61,24 @@ final class PracticeSession {
         while step < roundCount, !talk.isCancelled {
             if needsToHear {
                 phase = .hearing
-                await talk.say(isWholeRound ? "Now put it all together." : step == 0 ? "Repeat after me." : "Next piece.")
+                if isWholeRound {
+                    await talk.say("Now put it all together.")
+                } else if step == 0 && passesThisStep == 0 {
+                    await talk.say("Repeat after me.")
+                } else if style == .pieces {
+                    await talk.say("Next piece.")
+                }
                 await talk.say(target, slow: true)
             }
             phase = .answering
             if talk.mode == .voice {
+                // Build up keeps a quick back-and-forth rhythm, so it only prompts on the first round.
                 if passesThisStep > 0 {
                     await talk.say("One more time.")
-                } else {
-                    await talk.say(isWholeRound ? "Say the whole verse." : "Your turn.")
+                } else if isWholeRound {
+                    await talk.say("Say the whole verse.")
+                } else if style == .pieces || step == 0 {
+                    await talk.say("Your turn.")
                 }
             }
 
@@ -85,20 +107,24 @@ final class PracticeSession {
             if grade.passed {
                 misses = 0
                 passesThisStep += 1
-                if passesThisStep < Self.passesNeeded {
+                if passesThisStep < passesNeeded {
                     needsToHear = false
                     await talk.say("Correct. Say it once more.")
                 } else {
                     passesThisStep = 0
                     needsToHear = true
                     step += 1
-                    await talk.say(step == roundCount ? "Correct. That's the whole verse!" : "Correct, twice in a row.")
+                    if step == roundCount {
+                        await talk.say("Correct. That's the whole verse!")
+                    } else {
+                        await talk.say(passesNeeded == 1 ? "Correct." : "Correct, twice in a row.")
+                    }
                 }
             } else {
                 // A miss starts the count over, so the two correct answers are in a row.
                 passesThisStep = 0
                 misses += 1
-                if misses >= 2, !isWholeRound, let halves = Chunker.halve(target) {
+                if misses >= 2, !isWholeRound, let halves = Chunker.halve(currentPiece) {
                     chunks.replaceSubrange(step...step, with: halves)
                     misses = 0
                     needsToHear = true
